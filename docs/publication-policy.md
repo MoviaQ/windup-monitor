@@ -1,17 +1,15 @@
 # Publication & branch policy — windup-monitor (public OSS, Apache-2.0)
 
-Repo docelowe: `<authenticated-owner>/windup-monitor`, **PUBLIC**.
-Ta polityka obowiązuje od pierwszego pushu `main` na GitHub.
+Repo docelowe: [`MoviaQ/windup-monitor`](https://github.com/MoviaQ/windup-monitor),
+**PUBLIC**. Ta polityka obowiązuje od pierwszego pushu `main` na GitHub.
 
-> **Stan 2026-10-20 (pre-publish):** repo zdalne **nie istnieje**, nic nie
-> zostało wypchnięte, CI zdalne nie działa. Login właściciela jest
-> **nieustalony** — w sesji budowania brak uwierzytelnienia GitHub
-> (`gh` 2.102.0 dostępny lokalnie w `.cache/bin`, `gh auth status` =
-> „not logged into any GitHub hosts", brak `GH_TOKEN`/`GITHUB_TOKEN`, brak
-> credential helpera). Dlatego `CODEOWNERS` jest celowo comment-only.
-> **Wymagane przed publikacją:** `gh auth login`, potem podmiana
-> `<authenticated-owner>` tutaj, w `branch-protection-payload.json`
-> i dodanie realnej reguły `* @<login>` w `CODEOWNERS`.
+> **Stan 2026-10-20 (pre-publish):** konto publikujące uwierzytelnione jako
+> **`MoviaQ`** (GitHub user, scopes: `gist`, `read:org`, `repo`, `workflow`;
+> `gh` 2.102.0 z `.cache/bin`). Repo `MoviaQ/windup-monitor` **jeszcze nie
+> istnieje** (`gh repo view` → 404) — nic nie zostało wypchnięte, zdalne CI
+> nie działa. Oczekujemy wyłącznie na techniczne potwierdzenie secret review;
+> potem: create PUBLIC → pojedynczy bootstrap push `main` → ochrona z §3.
+> `CODEOWNERS` wskazuje `@MoviaQ`.
 
 ## 1. Jedyna droga na `main`: pull request
 
@@ -86,6 +84,5 @@ testowego — jest ignorowany i **nigdy** nie wchodzi do commita.
 - Równoległy task kart usług (`ServicesPage`, `PublicEndpoints`)
   ląduje jako snapshot w imporcie, potem ewentualny follow-up PR
   zgodnie z tą polityką.
-- `CODEOWNERS` jest **comment-only** do czasu ustalenia właściciela
-  (placeholder `@<authenticated-owner>` byłby niepoprawną regułą).
-  Po `gh auth login` dodać `* @<realny-login>` PR-em — zob. §3.
+- `CODEOWNERS` wskazuje właściciela konta: `* @MoviaQ` (reguła wymagana
+  przez `require_code_owner_reviews` w §3).

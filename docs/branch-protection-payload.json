@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/github-branch-protection.json",
-  "_note": "PREPARED payload — NOT APPLIED. Apply AFTER first push of main to <authenticated-owner>/windup-monitor (PUBLIC). Owner login NOT verified as of 2026-10-20: no gh authentication (no GH_TOKEN/GITHUB_TOKEN, no credential helper, gh auth status = not logged in). Replace <authenticated-owner> here, in CODEOWNERS and in docs/publication-policy.md before use.",
+  "_note": "PREPARED payload — NOT APPLIED. Apply AFTER the single bootstrap push of main to MoviaQ/windup-monitor (PUBLIC). Publishing account verified 2026-10-20: gh auth as MoviaQ (scopes gist, read:org, repo, workflow). Repo did not exist at prep time (404).",
   "target": {
-    "repo": "<authenticated-owner>/windup-monitor",
+    "repo": "MoviaQ/windup-monitor",
     "visibility": "public",
     "branch": "main",
     "bootstrap_exception": "Single initial push of the import commit to empty remote BEFORE enabling this protection. Enable immediately after."
