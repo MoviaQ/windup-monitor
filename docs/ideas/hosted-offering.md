@@ -50,7 +50,16 @@ Cel: **MAX 3 USD/mies od klienta**. Tania wygoda do OSS, nie enterprise SLA.
 Kurs wyłącznie ilustracyjny **4,00 USD/PLN (założenie, nie kurs bieżący)**,
 więc 3 USD = 12 zł TYLKO na potrzeby tego scenariusza.
 
-- Cap planu: 1 host, 5–10 usług, checki co 60 s, retencja 30 dni + rollupy.
+- Limity (hosty / usługi na tenant): DO USTALENIA z load testów, nie z głowy.
+  "1 host, 5 usług" to było arbitralne założenie do liczenia, NIE wymóg
+  produktu. Bez hasła "nielimitowane" — fair use przeciw abuse.
+- Agent zbiera metryki i lokalne proby na sprzęcie użytkownika i wysyła paczki
+  raportów; backend i tak przetwarza, zapisuje i trzyma dane per host/usługa,
+  a proby publicznych URL-i robi Core. Liczy się częstotliwość (15 s to 4×
+  więcej niż 60 s), retencja/rollupy i tempo ingestu. Proponowane 60 s
+  i krótka historia to scenariusze kosztowe przed testami.
+- Podane niżej kwoty gotówkowe zakładają ten sam hosting 82,45 zł — to scenariusz,
+  nie dowód że koszt nie zależy od hostów/usług.
 - Naprawy jako typowane playbooki opt-in (przyszłość). Bez AI, bez SMS, bez HA.
 - Opcja roczna 30 USD/rok (= 2,50 USD/mies ekwiwalentu) albo 36 USD/rok
   (nominalnie 3 USD/mies, niższe opłaty od transakcji). Rocznej nie wymuszamy
