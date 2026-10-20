@@ -44,11 +44,20 @@ obecnego Core (Fastify / Postgres / Go) 1:1 do Workers. Do sprawdzenia podział:
 
 Dopiero kosztorys + testy pokażą, co się opłaca.
 
-## Mini plany (limity + rekomendacja ceny)
+## Mini plany (cap 3 USD — cel główny)
 
-Rekomendacja do walidacji (nie obietnica): **19 zł/mies lub 199 zł/rok** na start
-(1 host, 5 usług, checki co 60 s), **29 zł/mies lub 279 zł/rok** standard.
-Bez hasła "nielimitowane za 5 zł" — tego nie będzie. Limity finalne po testach.
+Cel: **MAX 3 USD/mies od klienta**. Tania wygoda do OSS, nie enterprise SLA.
+Kurs wyłącznie ilustracyjny **4,00 USD/PLN (założenie, nie kurs bieżący)**,
+więc 3 USD = 12 zł TYLKO na potrzeby tego scenariusza.
+
+- Cap planu: 1 host, 5–10 usług, checki co 60 s, retencja 30 dni + rollupy.
+- Naprawy jako typowane playbooki opt-in (przyszłość). Bez AI, bez SMS, bez HA.
+- Opcja roczna 30 USD/rok (= 2,50 USD/mies ekwiwalentu) albo 36 USD/rok
+  (nominalnie 3 USD/mies, niższe opłaty od transakcji). Rocznej nie wymuszamy
+  i nie dokładamy dopłaty podatkowej powyżej capu 3 USD.
+- Poprzednie progi 19/29 zł: ZASTĄPIONE (superseded) — za drogie, wypadają
+  z rekomendacji. Zostają w historii gita, nie w cenniku.
+
 Darmowy self-host (Apache-2.0) zostaje bez zmian; hosted to przyszły pomysł
 na wygodę, nie wdrożona usługa napraw.
 
@@ -69,43 +78,59 @@ oszczędności Cloudflare vs VPS bez testów.
   (faktury zweryfikują). Wydajność dla 100/500 klientów NIE jest zmierzona —
   bez gwarancji.
 
-## Płatności (Stripe, ilustracyjnie)
+## Płatności (Stripe, zweryfikowane 2026-10-20)
 
-- EEA standard 1,5% + 1 zł, Billing +0,7% → opłata = 0,022×P + 1 zł.
-- Rezerwa +23% VAT od opłaty (konserwatywnie; jak księgować VAT od opłat
-  Stripe — do potwierdzenia z księgową, nie twierdzimy że wszystko opodatkowane).
-- Dla P=19 zł: opłata 1,74 zł (1,74414 przed zaokrągleniem).
+Cennik PL: karty standard EEA **1,5% + 1 zł**, premium EEA 1,9% + 1 zł,
+Billing pay-as-you-go **0,7%**. Karty międzynarodowe 3,25% + 1 zł,
+UK 2,5% + 1 zł, **+2% gdy wymagane przewalutowanie**; rozliczenie
+wielowalutowe 1% (źródło: stripe.com/pl/pricing, pobrane 2026-10-20).
 
-## Scenariusze (P=19 zł, zaokrąglone do pełnych zł)
+- Scenariusz bazowy (krajowe EEA): opłata = 0,022×P + 1 zł, +23% VAT od opłaty
+  jako rezerwa konserwatywna (jak księgować VAT od opłat Stripe — do
+  potwierdzenia z księgową). Dla P=12 zł: **opłata 1,55 zł** (1,55472).
+- Scenariusz droższy (karty spoza EEA + FX): 3,95% + 1 zł + 2% FX, +23% VAT
+  → dla P=12 zł opłata **2,11 zł** (2,10822). Stawek krajowych NIE przenosimy
+  na karty US/globalne.
+- Płatność w USD to też ryzyko kursu i regionu karty — policzone w scenariuszu
+  droższym, nie zgadujemy jednego kursu na przyszłość.
 
-Wzory: przychód = N×19; opłaty = N×1,74414; przed podatkiem = przychód −
-opłaty − 82,45; po 12% PIT + 9% zdrowotnej = ×0,79; po 32% + 9% = ×0,59.
-Przykład podatkowy: skala JDG, stawki krańcowe — nie dochód "na rękę"
-(próg 120 tys., ulga 30 tys., minimalna zdrowotna i roczne zaokrąglenia
-robią swoje).
+## Scenariusze (P=12 zł ≈ 3 USD, miesięcznie, zaokrąglone do pełnych zł)
+
+Wzory: przychód = N×12; opłaty krajowe = N×1,55472; przed podatkiem =
+przychód − opłaty − 82,45; po 12% PIT + 9% zdrowotnej = ×0,79;
+po 32% + 9% = ×0,59. Przykład podatkowy: skala JDG, stawki krańcowe —
+nie dochód "na rękę" (próg 120 tys., ulga 30 tys., minimalna zdrowotna
+i roczne zaokrąglenia robią swoje).
 
 | N   | przychód | opłaty | przed podatkiem | po 12%+9% | po 32%+9% |
 |-----|----------|--------|-----------------|-----------|-----------|
-| 10  | 190      | 17     | 90              | 71        | 53        |
-| 50  | 950      | 87     | 780             | 616       | 460       |
-| 100 | 1900     | 174    | 1643            | 1298      | 969       |
+| 10  | 120      | 16     | 22              | 17        | 13        |
+| 50  | 600      | 78     | 440             | 347       | 259       |
+| 100 | 1200     | 155    | 962             | 760       | 568       |
 
-(Dokładne: 90,1086 / 780,343 / 1643,136; po 12%: 71,1858 / 616,471 / 1298,0774;
-po 32%: 53,1641 / 460,4024 / 969,4502.)
+(Dokładne: 22,0028 / 439,814 / 962,078; po 12%: 17,3822 / 347,4531 / 760,0416;
+po 32%: 12,9817 / 259,4903 / 567,626.)
+
+Scenariusz droższy (karty spoza EEA + FX, opłata 2,10822/klienta):
+N=10/50/100 przed podatkiem 16,47 / 412,14 / 906,73; po 12%: 13,01 / 325,59 /
+716,32; po 32%: 9,72 / 243,16 / 534,97.
 
 - ZUS społeczny już istnieje (nie jest kosztem tego produktu); księgowość
   i narzut ZUS trzymać osobno jako alokowane, nie przyrostowe.
-- Opcjonalne +50 zł/mies administracji (jeśli kosztem): tnie gotówkę o 39,50 zł
-  przy 12% krańcowym.
-- Przykład 100 subskrybentów, ostrożnie: 1298 − 39,5 − 190 (rezerwa 10%
-  przychodu) ≈ 1069 zł odłożonej gotówki. Rezerwa to NIE koszt podatkowy —
-  samo odłożenie nie obniża podatku.
+- Opcjonalne +50 zł/mies administracji (jeśli kosztem, osobno): tnie gotówkę
+  o 39,50 zł przy 12% krańcowym. Rezerwa 10% przychodu brutto (osobno) to NIE
+  koszt podatkowy — samo odłożenie nie obniża podatku.
+- 100 klientów, ostrożnie: 760 − 39,5 − 120 ≈ 601 zł odłożonej gotówki.
+- 10 klientów NIE styka się z narzutem: 17 − 39,5 − 12 ≈ −34 zł. Próg 3 USD
+  wymaga skali albo cięcia narzutu — przy 10 klientach ledwo kryje sam hosting.
+- Break-even samego hostingu: **8 płacących miesięcznie** (krajowe),
+  **9 przy kartach spoza EEA**. Przed administracją i rezerwą.
+- Roczne 30 USD (120 zł): jedna opłata ~4,48 zł/rok (0,37 zł/mies ekwiwalentu)
+  — tańsze w opłatach, ale nie wymuszamy rocznego.
 - Nie wliczone: praca właściciela, setup, prawnik, audyt bezpieczeństwa,
-  HA / dyżury, marketing. Nie piszemy "wszystkie koszty pokryte".
-- 10 subskrybentów ledwo styka się z kosztami: ~71 − 39,5 − 19 ≈ 13 zł reszty.
-- Break-even samego progu 19 zł: 5 klientów (bez administracji i rezerwy).
-  Promo 9 zł potrzebuje 11 klientów na sam próg — tylko jako promocja,
-  nie cena startowa.
+  HA / dyżury, marketing. To NIE jest pełny rachunek zysku.
+- Model PL zwolniony z VAT to nie gwarancja sprzedaży globalnej: VAT UE/OSS
+  i cena z podatkiem wliczonym muszą zmieścić się w capie 3 USD — do wyceny.
 
 ## Źródła (2026-10-20, do odświeżenia przed decyzją)
 
@@ -124,6 +149,7 @@ po 32%: 53,1641 / 460,4024 / 969,4502.)
 Uwagi bez pewników: VAT importowy może zostać do zapłaty mimo zwolnienia
 (nie podwójnie liczony, księgowa potwierdzi); sprzedaż B2C usług cyfrowych
 w UE (VAT/OSS, reżim SME) do oceny bez podawania liczb progów z głowy.
+Fiskalnie i hostingowo to scenariusze, nie benchmarki.
 
 ## Do sprawdzenia w przyszłości (lista, bez pewników)
 
