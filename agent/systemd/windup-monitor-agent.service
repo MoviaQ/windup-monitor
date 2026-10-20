@@ -1,0 +1,35 @@
+[Unit]
+Description=Windup Monitor host agent (metrics to Core, protocol v1)
+Documentation=https://example.invalid/wind-up-monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=windup-monitor
+Group=windup-monitor
+ExecStart=/usr/local/bin/windup-monitor-agent run --core-url https://core:8080 --state-dir /var/lib/windup-monitor
+EnvironmentFile=-/etc/windup-monitor-agent.env
+Restart=on-failure
+RestartSec=10s
+
+# Least privilege: no new privileges, read-only system, private /tmp,
+# state confined to /var/lib/windup-monitor. No Docker access in S1.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+ReadWritePaths=/var/lib/windup-monitor
+
+# Outbound HTTPS only needs DNS + egress; no listening socket exists.
+# Harden further with your firewall (agent initiates all connections).
+
+[Install]
+WantedBy=multi-user.target

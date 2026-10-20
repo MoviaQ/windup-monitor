@@ -1,0 +1,442 @@
+// Prisma schema — Windup Monitor Core (slices S1 + services iteration).
+// Canonical column names follow docs/data-model.md §1 (snake_case in DB, camelCase in code).
+// Service tables are additive to S1: discovery snapshots, approved loopback
+// HTTP checks, immutable results and minimal incidents. Docker/commands remain
+// out of scope for this iteration.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  runtime             = "nodejs"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+// Connection URL lives in prisma.config.ts (Prisma ORM v7 removed `url` from the schema).
+datasource db {
+  provider = "postgresql"
+}
+
+enum AgentStatus {
+  pending
+  online
+  stale
+  offline
+  revoked
+}
+
+/// Single-user row: at most one row is enforced by a unique expression index
+/// (see migration SQL) so two concurrent bootstraps cannot both win.
+model User {
+  id           String    @id
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  sessions     Session[]
+
+  aiSetting     AiSetting?
+  aiCredentials AiCredential[]
+  aiUsageEvents AiUsageEvent[]
+
+  @@map("users")
+}
+
+model Session {
+  id            String   @id
+  userId        String   @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt     DateTime @map("expires_at") @db.Timestamptz(6)
+  lastSeenAt    DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  ipHash        String?  @map("ip_hash")
+  userAgentHash String?  @map("user_agent_hash")
+
+  @@index([userId, expiresAt])
+  @@map("sessions")
+}
+
+model Agent {
+  id                     String      @id
+  name                   String      @unique
+  credentialHash         String?     @map("credential_hash")
+  credentialHashNext     String?     @map("credential_hash_next")
+  credentialOverlapUntil DateTime?   @map("credential_overlap_until") @db.Timestamptz(6)
+  rotationId             String?     @map("rotation_id")
+  lastRotationId         String?     @map("last_rotation_id")
+  status                 AgentStatus @default(pending)
+  capabilities           String[]    @default([])
+  agentVersion           String?     @map("agent_version")
+  protocolVersion        Int         @default(1) @map("protocol_version")
+  configVersion          Int         @default(1) @map("config_version")
+  lastSeenAt             DateTime?   @map("last_seen_at") @db.Timestamptz(6)
+  lastSeq                BigInt      @default(0) @map("last_seq")
+  lastSnapshotAt         DateTime?   @map("last_snapshot_at") @db.Timestamptz(6)
+  lastDiscoveryAt        DateTime?   @map("last_discovery_at") @db.Timestamptz(6)
+  notifyOnOffline        Boolean     @default(true) @map("notify_on_offline")
+  createdAt              DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt              DateTime?   @map("revoked_at") @db.Timestamptz(6)
+
+  metricSamples         MetricSample[]
+  diskSamples           DiskSample[]
+  discoveredServices    DiscoveredService[]
+  services              Service[]
+  serviceResults        ServiceResult[]
+  serviceProcessMetrics ServiceProcessMetric[]
+
+  @@map("agents")
+}
+
+model EnrollToken {
+  id        String    @id
+  tokenHash String    @unique @map("token_hash")
+  label     String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+
+  @@map("enroll_tokens")
+}
+
+/// Singleton row (id = 1, CHECK enforced in migration SQL).
+model BootstrapState {
+  id        Int       @id
+  tokenHash String?   @map("token_hash")
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("bootstrap_state")
+}
+
+model MetricSample {
+  id         String   @id
+  agentId    String   @map("agent_id")
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  seq        BigInt
+  observedAt DateTime @map("observed_at") @db.Timestamptz(6)
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+  late       Boolean  @default(false)
+  cpuPct     Float    @map("cpu_pct")
+  load1      Float?
+  memUsedB   BigInt   @map("mem_used_b")
+  memTotalB  BigInt   @map("mem_total_b")
+  uptimeS    BigInt   @map("uptime_s")
+  netRxB     BigInt   @map("net_rx_b")
+  netTxB     BigInt   @map("net_tx_b")
+
+  @@unique([agentId, seq])
+  @@index([agentId, receivedAt(sort: Desc)])
+  @@map("metric_samples")
+}
+
+model DiskSample {
+  id         String   @id
+  agentId    String   @map("agent_id")
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  seq        BigInt
+  mount      String
+  totalB     BigInt   @map("total_b")
+  usedB      BigInt   @map("used_b")
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  @@unique([agentId, seq, mount])
+  @@index([agentId, receivedAt(sort: Desc)])
+  @@map("disk_samples")
+}
+
+/// Append-only audit trail. Application role should hold INSERT+SELECT only
+/// (see README "Audit log role" — enforced at deployment, not by Prisma).
+model AuditLog {
+  id     String   @id
+  at     DateTime @default(now()) @db.Timestamptz(6)
+  actor  String
+  action String
+  target String?
+  detail Json?
+
+  @@index([at])
+  @@index([actor])
+  @@map("audit_log")
+}
+
+/// Latest discovery snapshot per (agent, candidate). `candidateId` is the
+/// agent-local stable identity (`kind-port`); a port reused by another
+/// application therefore produces a different row instead of inheriting the
+/// old one. `available` flips to false when the candidate disappears from a
+/// complete snapshot; incomplete snapshots never delete/disable candidates.
+model DiscoveredService {
+  agentId            String    @map("agent_id")
+  agent              Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  candidateId        String    @map("candidate_id")
+  name               String
+  kind               String
+  port               Int
+  transport          String
+  source             String
+  confidence         String
+  /// Additive generic-discovery contract: an unknown `kind` never implies
+  /// "cannot monitor". Legacy agents omit the field; ingest infers the old
+  /// behaviour (HTTP with an explicit hint). New agents state it explicitly.
+  monitorable        Boolean   @default(true)
+  /// Safe evidence label for the human name (never cmdline/env). Wire enum:
+  /// exe|comm|package-json|systemd|container|fallback|fingerprint.
+  nameSource         DiscoveryNameSource? @map("name_source")
+  processStartedAt   DateTime? @map("process_started_at") @db.Timestamptz(6)
+  suggestedPath      String?   @map("suggested_path")
+  suggestedStatuses  Int[]     @map("suggested_statuses")
+  available          Boolean   @default(true)
+  firstSeenAt        DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt         DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  snapshotObservedAt DateTime  @map("snapshot_observed_at") @db.Timestamptz(6)
+  completeSnapshot   Boolean   @default(true) @map("complete_snapshot")
+
+  @@id([agentId, candidateId])
+  @@index([agentId, available])
+  @@map("discovered_services")
+}
+
+/// Approved monitoring target. The target (port + path + expected statuses)
+/// is immutable per config revision: changing an incompatible target bumps
+/// the revision so old results cannot be presented as the current config.
+model Service {
+  id                   String        @id
+  checkId              String        @unique @map("check_id")
+  agentId              String        @map("agent_id")
+  agent                Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  candidateId          String        @map("candidate_id")
+  name                 String
+  port                 Int
+  /// http (default, legacy) or tcp (generic listener, no HTTP semantics).
+  transport            String        @default("http")
+  path                 String
+  expectedStatuses     Int[]         @map("expected_statuses")
+  intervalSeconds      Int           @default(30) @map("interval_seconds")
+  timeoutSeconds       Int           @default(5) @map("timeout_seconds")
+  failureThreshold     Int           @default(3) @map("failure_threshold")
+  successThreshold     Int           @default(2) @map("success_threshold")
+  enabled              Boolean       @default(true)
+  configRevision       Int           @default(1) @map("config_revision")
+  /// Start of the availability measurement window for the current config.
+  /// Set on create, on target changes and on resume; history before this
+  /// point belongs to another configuration and is not used.
+  horizonAt            DateTime      @default(now()) @map("horizon_at") @db.Timestamptz(6)
+  status               ServiceStatus @default(unknown)
+  consecutiveFailures  Int           @default(0) @map("consecutive_failures")
+  consecutiveSuccesses Int           @default(0) @map("consecutive_successes")
+  lastCheckedAt        DateTime?     @map("last_checked_at") @db.Timestamptz(6)
+  lastStatusCode       Int?          @map("last_status_code")
+  lastLatencyMs        Float?        @map("last_latency_ms")
+  lastErrorCode        String?       @map("last_error_code")
+  upSince              DateTime?     @map("up_since") @db.Timestamptz(6)
+  /// Set only when the observed owner process start changes for an existing
+  /// service. Continuity resets from the first healthy probe after it; this
+  /// column keeps "restart detected" distinct from "first healthy sample".
+  lastRestartAt        DateTime?     @map("last_restart_at") @db.Timestamptz(6)
+  processStartedAt     DateTime?     @map("process_started_at") @db.Timestamptz(6)
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  results   ServiceResult[]
+  incidents ServiceIncident[]
+  publicEndpoints PublicEndpoint[]
+
+  @@unique([agentId, candidateId])
+  @@index([agentId, enabled])
+  @@map("services")
+}
+
+enum ServiceStatus {
+  unknown
+  up
+  down
+  paused
+}
+
+/// Safe generic-discovery evidence for the human-readable name. Hyphenated
+/// wire value stays exactly `package-json` in the database.
+enum DiscoveryNameSource {
+  exe
+  comm
+  package_json @map("package-json")
+  systemd
+  container
+  fallback
+  fingerprint
+}
+
+/// Latest bounded per-process CPU/RSS observation for one candidate. Keyed by
+/// the agent-local candidate identity; `process_started_at` is part of the
+/// stored identity so a pid/candidate reuse can never inherit an old sample.
+/// Rows are ignored by the API once stale (>45 s), the agent is not online,
+/// the candidate is unavailable, or the process start no longer matches.
+model ServiceProcessMetric {
+  agentId          String   @map("agent_id")
+  agent            Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  candidateId      String   @map("candidate_id")
+  processStartedAt DateTime @map("process_started_at") @db.Timestamptz(6)
+  observedAt       DateTime @map("observed_at") @db.Timestamptz(6)
+  receivedAt       DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+  cpuPercent       Float?   @map("cpu_percent")
+  memoryRssBytes   BigInt?  @map("memory_rss_bytes")
+
+  @@id([agentId, candidateId])
+  @@index([agentId, observedAt(sort: Desc)])
+  @@map("service_process_metrics")
+}
+
+/// Immutable probe result. Dedup key is (agent, check, observed_at): retrying
+/// the same heartbeat never creates a second history row, and a stale config
+/// revision is rejected by the ingest transaction (never mixed into history).
+model ServiceResult {
+  id             String   @id
+  agentId        String   @map("agent_id")
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  serviceId      String   @map("service_id")
+  service        Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  checkId        String   @map("check_id")
+  configRevision Int      @map("config_revision")
+  agentSeq       BigInt   @map("agent_seq")
+  observedAt     DateTime @map("observed_at") @db.Timestamptz(6)
+  receivedAt     DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+  ok             Boolean
+  statusCode     Int?     @map("status_code")
+  latencyMs      Float    @map("latency_ms")
+  errorCode      String?  @map("error_code")
+
+  @@unique([agentId, checkId, observedAt])
+  @@index([serviceId, observedAt(sort: Desc)])
+  @@index([agentId, observedAt])
+  @@map("service_results")
+}
+
+/// Minimal service-down incident: opened once when the failure threshold is
+/// crossed, resolved when the success threshold is met. Acknowledgement,
+/// notifications and recovery playbooks are a later slice.
+model ServiceIncident {
+  id         String    @id
+  serviceId  String    @map("service_id")
+  service    Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  openedAt   DateTime  @default(now()) @map("opened_at") @db.Timestamptz(6)
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(6)
+  reason     String
+
+  @@index([serviceId, openedAt(sort: Desc)])
+  @@index([serviceId, resolvedAt])
+  @@map("service_incidents")
+}
+
+/// Operator-managed public HTTPS URL attached to a monitored service.
+/// Probed independently of the agent-local health check (Core-side HTTPS,
+/// fresh DNS + pinned IP per probe, no redirect following). Changing the URL
+/// clears the stored result — old successes never describe the new target.
+model PublicEndpoint {
+  id              String        @id
+  serviceId       String        @map("service_id")
+  service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  label           String?
+  url             String
+  enabled         Boolean       @default(true)
+  intervalSeconds Int           @default(60) @map("interval_seconds")
+  timeoutSeconds  Int           @default(8) @map("timeout_seconds")
+  status          ServiceStatus @default(unknown)
+  lastCheckedAt   DateTime?     @map("last_checked_at") @db.Timestamptz(6)
+  lastStatusCode  Int?          @map("last_status_code")
+  lastLatencyMs   Float?        @map("last_latency_ms")
+  lastErrorCode   String?       @map("last_error_code")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  results PublicEndpointResult[]
+
+  @@unique([serviceId, url])
+  @@index([serviceId])
+  @@map("public_endpoints")
+}
+
+/// Bounded probe history of one public endpoint (last 100 kept by the writer).
+model PublicEndpointResult {
+  id         String   @id
+  endpointId String   @map("endpoint_id")
+  endpoint   PublicEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  observedAt DateTime @map("observed_at") @db.Timestamptz(6)
+  ok         Boolean
+  statusCode Int?     @map("status_code")
+  latencyMs  Float    @map("latency_ms")
+  errorCode  String?  @map("error_code")
+
+  @@index([endpointId, observedAt(sort: Desc)])
+  @@map("public_endpoint_results")
+}
+
+// ---------------------------------------------------------------------------
+// AI foundations (config + connections + app-side usage). Additive; no
+// inference tables — this slice only stores configuration and usage events
+// recorded by the application itself. See docs/ai-integration-contract.md.
+// ---------------------------------------------------------------------------
+
+enum AiProvider {
+  openrouter
+  openai
+  chatgpt
+  custom
+}
+
+enum AiExecutionMode {
+  monitor_only
+  approval_required
+  autonomous
+}
+
+/// Per-user AI configuration. Absent row = defaults (no provider, no model,
+/// executionMode `approval_required`). `base_url`/`custom_name` configure the
+/// OpenAI-compatible custom provider; `base_url` is never a secret.
+model AiSetting {
+  userId        String          @id @map("user_id")
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      AiProvider?
+  model         String?
+  autoFree      Boolean         @default(false) @map("auto_free")
+  executionMode AiExecutionMode @default(approval_required) @map("execution_mode")
+  customName    String?         @map("custom_name")
+  baseUrl       String?         @map("base_url")
+  updatedAt     DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("ai_settings")
+}
+
+/// Encrypted provider secret (AES-256-GCM blob, `v1.<base64url(iv|tag|ct)>`).
+/// For API-key providers the plaintext is a JSON payload `{apiKey}`; for
+/// `chatgpt` it is the opaque credential string managed by core/src/ai/chatgpt.ts
+/// through the ChatGptTokenStore adapter. `key_hint` is a masked trace
+/// (`abcd…wxyz`) — never the secret itself.
+model AiCredential {
+  userId        String     @map("user_id")
+  provider      AiProvider
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ciphertext    String
+  keyHint       String?    @map("key_hint")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastCheckedAt DateTime?  @map("last_checked_at") @db.Timestamptz(6)
+
+  @@id([userId, provider])
+  @@map("ai_credentials")
+}
+
+/// App-side AI usage event, recorded only by the application (never by the
+/// client). Aggregated by GET /api/v1/ai/usage; no provider billing data.
+model AiUsageEvent {
+  id           String      @id
+  userId       String      @map("user_id")
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     AiProvider
+  model        String?
+  kind         String?
+  inputTokens  Int?        @map("input_tokens")
+  outputTokens Int?        @map("output_tokens")
+  costUsd      Float?      @map("cost_usd")
+  occurredAt   DateTime    @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  @@index([userId, occurredAt(sort: Desc)])
+  @@map("ai_usage_events")
+}

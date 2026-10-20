@@ -1,0 +1,33 @@
+{
+  "name": "windup-monitor",
+  "version": "0.1.0",
+  "description": "Windup Monitor — self-hosted monitoring with deterministic recovery. Monorepo: core (Fastify/TS), web (Vite/React), agent (Go).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "core",
+    "web"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspace core && npm run typecheck --workspace web",
+    "lint": "npm run lint --workspace core && npm run lint --workspace web",
+    "test": "npm run test --workspace core && npm run test --workspace web",
+    "build": "npm run build --workspace core && npm run build --workspace web",
+    "dev:core": "npm run dev --workspace core",
+    "dev:web": "npm run dev --workspace web",
+    "prisma:generate": "npm run prisma:generate --workspace core",
+    "db:dev": "bash scripts/dev-db.sh",
+    "smoke": "node scripts/smoke-s1.mjs",
+    "test:e2e": "node scripts/e2e-go-core.mjs",
+    "agent:build": "cd agent && go build -o bin/windup-monitor-agent ./cmd/windup-monitor-agent",
+    "agent:test": "cd agent && go test ./...",
+    "agent:vet": "cd agent && go vet ./..."
+  }
+}

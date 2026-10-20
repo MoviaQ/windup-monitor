@@ -1,0 +1,29 @@
+# Optional TLS reverse proxy (SEC-001). Caddy obtains a certificate for
+# SP_DOMAIN automatically (public DNS + ports 80/443 reachable).
+#
+#   docker compose -f deploy/docker-compose.yml \
+#                  -f deploy/docker-compose.tls.yml up -d --build
+#
+# Then set COOKIE_SECURE=true (default) and, if browsers access the app through
+# the proxy, TRUST_PROXY=true (default). The Core port remains loopback-only.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      core:
+        condition: service_healthy
+    environment:
+      SP_DOMAIN: ${SP_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./examples/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

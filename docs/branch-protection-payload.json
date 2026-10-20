@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json.schemastore.org/github-branch-protection.json",
+  "_note": "PREPARED payload — NOT APPLIED. Apply AFTER first push of main to <authenticated-owner>/windup-monitor (PUBLIC). Owner login NOT verified as of 2026-10-20: no gh authentication (no GH_TOKEN/GITHUB_TOKEN, no credential helper, gh auth status = not logged in). Replace <authenticated-owner> here, in CODEOWNERS and in docs/publication-policy.md before use.",
+  "target": {
+    "repo": "<authenticated-owner>/windup-monitor",
+    "visibility": "public",
+    "branch": "main",
+    "bootstrap_exception": "Single initial push of the import commit to empty remote BEFORE enabling this protection. Enable immediately after."
+  },
+  "rest_branch_protection": {
+    "method": "PUT /repos/{owner}/{repo}/branches/main/protection",
+    "body": {
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "core (lint, typecheck, build, real-Postgres tests)",
+          "web (lint, typecheck, test, build)",
+          "agent (vet, test, build linux amd64+arm64)",
+          "compose config validity"
+        ]
+      },
+      "enforce_admins": true,
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": false,
+        "require_conversation_resolution": true
+      },
+      "restrictions": null,
+      "required_linear_history": false,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_signatures": false
+    }
+  },
+  "ruleset_alternative": {
+    "_when": "If classic branch protection UI is unavailable (personal free account), create a branch ruleset with the same semantics.",
+    "name": "main-only-via-PR",
+    "enforcement": "active",
+    "bypass_mode": "none",
+    "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
+    "rules": [
+      { "type": "deletion" },
+      { "type": "non_fast_forward" },
+      { "type": "required_pull_request", "parameters": { "required_approving_review_count": 1, "dismiss_stale_reviews_on_push": true, "require_code_owner_review": true, "require_last_push_approval": false, "required_review_thread_resolution": true } },
+      { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": true, "required_status_checks": [{ "context": "core (lint, typecheck, build, real-Postgres tests)" }, { "context": "web (lint, typecheck, test, build)" }, { "context": "agent (vet, test, build linux amd64+arm64)" }, { "context": "compose config validity" }] } }
+    ]
+  }
+}

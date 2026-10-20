@@ -1,0 +1,43 @@
+// Reference snippet for the shared prisma/schema.prisma (applied by the
+// coordinator once the parallel process-metrics edit lands). Kept as a
+// snippet — NOT the schema itself — so this module touches no shared file.
+
+/*
+model PublicEndpoint {
+  id              String   @id
+  serviceId       String   @map("service_id")
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  label           String?
+  url             String
+  enabled         Boolean  @default(true)
+  intervalSeconds Int      @default(60) @map("interval_seconds")
+  timeoutSeconds  Int      @default(8) @map("timeout_seconds")
+  status          ServiceStatus @default(unknown)
+  lastCheckedAt   DateTime? @map("last_checked_at") @db.Timestamptz(6)
+  lastStatusCode  Int?      @map("last_status_code")
+  lastLatencyMs   Float?    @map("last_latency_ms")
+  lastErrorCode   String?   @map("last_error_code")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  results PublicEndpointResult[]
+
+  @@unique([serviceId, url])
+  @@index([serviceId])
+  @@map("public_endpoints")
+}
+
+model PublicEndpointResult {
+  id         String   @id
+  endpointId String   @map("endpoint_id")
+  endpoint   PublicEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  observedAt DateTime @map("observed_at") @db.Timestamptz(6)
+  ok         Boolean
+  statusCode Int?     @map("status_code")
+  latencyMs  Float    @map("latency_ms")
+  errorCode  String?  @map("error_code")
+
+  @@index([endpointId, observedAt(sort: Desc)])
+  @@map("public_endpoint_results")
+}
+*/

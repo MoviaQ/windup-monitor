@@ -1,0 +1,17 @@
+# CODEOWNERS — windup-monitor
+#
+# INTENTIONALLY COMMENT-ONLY until the public repository exists.
+#
+# The target repository is <authenticated-owner>/windup-monitor, but the
+# GitHub login of the publishing account was NOT verified at import time
+# (no `gh` authentication in the build session). A placeholder handle such
+# as `* @<authenticated-owner>` is an invalid CODEOWNERS rule, so it is not
+# committed.
+#
+# REQUIRED BEFORE PUBLICATION (see docs/publication-policy.md §3):
+# after `gh auth login`, append the real owner rule, e.g.
+#
+#     * @<real-github-login>
+#
+# and commit it through a pull request. Until then, code-owner review is
+# enforced by branch protection with no matching owner pattern.

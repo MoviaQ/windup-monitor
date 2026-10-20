@@ -1,0 +1,23 @@
+# Build context is the repository root (see deploy/docker-compose.yml).
+**/node_modules
+**/dist
+core/src/generated
+.git
+.github
+.tmp
+coverage
+*.log
+
+# Docs and non-runtime sources are not needed inside the image.
+docs
+kanban.md
+agent
+assets
+README.md
+CONTRIBUTING.md
+SECURITY.md
+LICENSE
+deploy
+scripts
+
+.cache

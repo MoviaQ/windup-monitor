@@ -1,0 +1,4 @@
+-- Pointer: the authoritative DDL lives in
+-- core/prisma/migrations/20261019120000_public_endpoints/migration.sql
+-- (additive, generated via `prisma migrate diff`, reviewed, no DROP).
+-- This file is intentionally not a second copy of the DDL.

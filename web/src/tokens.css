@@ -1,0 +1,189 @@
+/*
+ * Windup Monitor — tokeny Material 3 (DEC-UI-01: ręczne tokeny, własne komponenty).
+ * Jedyny plik, w którym dozwolone są wartości hex — komponenty odwołują się
+ * wyłącznie do zmiennych poniżej. Schemat: statyczny baseline + dark
+ * (DEC-UI-02: brak dynamic color w self-hoście).
+ * Paleta (DEC-UI-04, 2026-10-19): neutralne surfaces (light: biel, dark:
+ * grafitowa czerń), brand/primary GRANAT, zero różu/fioletu w rolach
+ * primary/secondary/tertiary. Semantyka: error czerwony, warn dyskretny
+ * amber, success zielony — tylko jako kolory statusów, nie brand.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Role kolorów M3 — schemat jasny (baseline). Primary = granat. */
+  --md-sys-color-primary: #1a365d;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #dbe4f0;
+  --md-sys-color-on-primary-container: #162e4d;
+  --md-sys-color-secondary: #4b5563;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #e5e7eb;
+  --md-sys-color-on-secondary-container: #1f2937;
+  --md-sys-color-tertiary: #475569;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #e2e8f0;
+  --md-sys-color-on-tertiary-container: #1e293b;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #111418;
+  --md-sys-color-surface-variant: #e5e7eb;
+  --md-sys-color-on-surface-variant: #4b5563;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f8fafc;
+  --md-sys-color-surface-container: #f1f5f9;
+  --md-sys-color-surface-container-high: #e8edf3;
+  --md-sys-color-outline: #73777f;
+  --md-sys-color-outline-variant: #c3c7cf;
+
+  /* Rozszerzone kolory statusów (M3 nie definiuje success/warning).
+   * Tekst statusu zawsze z ikoną + etykietą (ui-design §4), kontrast ≥ 4.5:1. */
+  --sp-status-ok: #146c2e;
+  --sp-status-ok-container: #b9f0ae;
+  --sp-status-on-ok-container: #0c4f20;
+  --sp-status-warn: #7a4a00;
+  --sp-status-warn-container: #ffddb3;
+  --sp-status-on-warn-container: #573300;
+
+  /* Typografia M3 — warianty baseline (Expressive niedostępne na Web). */
+  --md-sys-typescale-display-large-size: 3.5625rem;
+  --md-sys-typescale-display-large-line-height: 4rem;
+  --md-sys-typescale-headline-medium-size: 1.75rem;
+  --md-sys-typescale-headline-medium-line-height: 2.25rem;
+  --md-sys-typescale-title-large-size: 1.375rem;
+  --md-sys-typescale-title-large-line-height: 1.75rem;
+  --md-sys-typescale-title-medium-size: 1rem;
+  --md-sys-typescale-title-medium-line-height: 1.5rem;
+  --md-sys-typescale-title-small-size: 0.875rem;
+  --md-sys-typescale-title-small-line-height: 1.25rem;
+  --md-sys-typescale-body-large-size: 1rem;
+  --md-sys-typescale-body-large-line-height: 1.5rem;
+  --md-sys-typescale-body-medium-size: 0.875rem;
+  --md-sys-typescale-body-medium-line-height: 1.25rem;
+  --md-sys-typescale-body-small-size: 0.75rem;
+  --md-sys-typescale-body-small-line-height: 1rem;
+  --md-sys-typescale-label-large-size: 0.875rem;
+  --md-sys-typescale-label-large-line-height: 1.25rem;
+  --md-sys-typescale-label-medium-size: 0.75rem;
+  --md-sys-typescale-label-medium-line-height: 1rem;
+  --md-sys-typescale-label-small-size: 0.6875rem;
+  --md-sys-typescale-label-small-line-height: 1rem;
+
+  --md-sys-typescale-weight-regular: 400;
+  --md-sys-typescale-weight-medium: 500;
+  --md-sys-typescale-weight-bold: 700;
+
+  /* Kształty M3 (skala sketch). */
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* Odstępy — baza 8dp (system spacing I/O 2026). */
+  --sp-spacing-1: 8px;
+  --sp-spacing-2: 16px;
+  --sp-spacing-3: 24px;
+  --sp-spacing-4: 32px;
+
+  /* Warstwy stanu M3 (realizowane overlayem, nie podmianą koloru). */
+  --md-state-hover-opacity: 0.08;
+  --md-state-focus-opacity: 0.12;
+  --md-state-pressed-opacity: 0.12;
+
+  --sp-focus-ring-width: 2px;
+  --sp-touch-target: 48px;
+  --sp-content-max-width: 1120px;
+
+  /* Przyciemnienie pod dialogiem modalnym. */
+  --sp-scrim: rgb(0 0 0 / 0.4);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Dark: jasny granat jako primary (kontrast na grafitowej czerni),
+   * neutralne grafitowe secondary/tertiary — zero fioletu/różu. */
+  --md-sys-color-primary: #a9c1e8;
+  --md-sys-color-on-primary: #0c1f36;
+  --md-sys-color-primary-container: #274a75;
+  --md-sys-color-on-primary-container: #dbe7f8;
+  --md-sys-color-secondary: #c3c8d1;
+  --md-sys-color-on-secondary: #2a2f36;
+  --md-sys-color-secondary-container: #3a4048;
+  --md-sys-color-on-secondary-container: #e2e6eb;
+  --md-sys-color-tertiary: #b8c2cf;
+  --md-sys-color-on-tertiary: #22303f;
+  --md-sys-color-tertiary-container: #3a4a5d;
+  --md-sys-color-on-tertiary-container: #dfe7f1;
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffdad6;
+  --md-sys-color-surface: #101214;
+  --md-sys-color-on-surface: #e4e7eb;
+  --md-sys-color-surface-variant: #3a3f46;
+  --md-sys-color-on-surface-variant: #c3c7cf;
+  --md-sys-color-surface-container-lowest: #0b0d0f;
+  --md-sys-color-surface-container-low: #15181c;
+  --md-sys-color-surface-container: #1b1f24;
+  --md-sys-color-surface-container-high: #262b31;
+  --md-sys-color-outline: #8e9199;
+  --md-sys-color-outline-variant: #44484f;
+
+  --sp-status-ok: #7bd88f;
+  --sp-status-ok-container: #0c4f20;
+  --sp-status-on-ok-container: #b9f0ae;
+  --sp-status-warn: #f0b429;
+  --sp-status-warn-container: #573300;
+  --sp-status-on-warn-container: #ffddb3;
+}
+
+/* Domyślny motyw wg systemu, gdy użytkownik nie wybrał jawnie.
+ * Auto pozostaje (DEC-UI-04): użytkownik nie nakazał white-only, oba
+ * motywy są spójne i neutralne — dark to grafit, nie czysty czarny
+ * (czytelność + mniej smużenia na OLED przy zachowaniu kontrastu). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --md-sys-color-primary: #a9c1e8;
+    --md-sys-color-on-primary: #0c1f36;
+    --md-sys-color-primary-container: #274a75;
+    --md-sys-color-on-primary-container: #dbe7f8;
+    --md-sys-color-secondary: #c3c8d1;
+    --md-sys-color-on-secondary: #2a2f36;
+    --md-sys-color-secondary-container: #3a4048;
+    --md-sys-color-on-secondary-container: #e2e6eb;
+    --md-sys-color-tertiary: #b8c2cf;
+    --md-sys-color-on-tertiary: #22303f;
+    --md-sys-color-tertiary-container: #3a4a5d;
+    --md-sys-color-on-tertiary-container: #dfe7f1;
+    --md-sys-color-error: #ffb4ab;
+    --md-sys-color-on-error: #690005;
+    --md-sys-color-error-container: #93000a;
+    --md-sys-color-on-error-container: #ffdad6;
+    --md-sys-color-surface: #101214;
+    --md-sys-color-on-surface: #e4e7eb;
+    --md-sys-color-surface-variant: #3a3f46;
+    --md-sys-color-on-surface-variant: #c3c7cf;
+    --md-sys-color-surface-container-lowest: #0b0d0f;
+    --md-sys-color-surface-container-low: #15181c;
+    --md-sys-color-surface-container: #1b1f24;
+    --md-sys-color-surface-container-high: #262b31;
+    --md-sys-color-outline: #8e9199;
+    --md-sys-color-outline-variant: #44484f;
+
+    --sp-status-ok: #7bd88f;
+    --sp-status-ok-container: #0c4f20;
+    --sp-status-on-ok-container: #b9f0ae;
+    --sp-status-warn: #f0b429;
+    --sp-status-warn-container: #573300;
+    --sp-status-on-warn-container: #ffddb3;
+  }
+}

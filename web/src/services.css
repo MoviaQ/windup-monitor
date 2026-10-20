@@ -1,0 +1,177 @@
+/* StatusPilot — style ekranu Usługi (S2). Tylko tokeny z tokens.css, paleta neutralna. */
+
+.svc-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-spacing-1);
+  flex-wrap: wrap;
+}
+
+.svc-tabs {
+  display: flex;
+  gap: var(--sp-spacing-1);
+  border-bottom: 1px solid var(--md-sys-color-surface-variant);
+  padding-bottom: var(--sp-spacing-1);
+}
+
+.svc-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-touch-target);
+  padding: 0 var(--sp-spacing-2);
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-weight-medium);
+  cursor: pointer;
+}
+
+.svc-tab--active {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.svc-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-spacing-2);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .svc-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.svc-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-spacing-1);
+}
+
+.svc-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-spacing-1);
+}
+
+.svc-card-head h3 {
+  margin: 0;
+}
+
+.svc-card-head p {
+  margin: 4px 0 0;
+}
+
+/* Status publicznego URL — zawsze widoczny na karcie, także zwiniętej. */
+.svc-public {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-spacing-1);
+}
+
+.svc-meta {
+  display: grid;
+  gap: var(--sp-spacing-1);
+  margin: 0;
+}
+
+.svc-meta > div {
+  display: grid;
+  gap: 2px;
+}
+
+.svc-meta dt {
+  font-size: var(--md-sys-typescale-label-medium-size);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.svc-meta dd {
+  margin: 0;
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.svc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-spacing-1);
+}
+
+.svc-detail {
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+  padding-top: var(--sp-spacing-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-spacing-1);
+}
+
+.svc-detail h4 {
+  margin: var(--sp-spacing-1) 0 0;
+}
+
+.svc-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.svc-advanced {
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  padding: var(--sp-spacing-1) var(--sp-spacing-2);
+  margin-bottom: var(--sp-spacing-2);
+}
+
+.svc-advanced summary {
+  cursor: pointer;
+  min-height: var(--sp-touch-target);
+  display: flex;
+  align-items: center;
+  font-weight: var(--md-sys-typescale-weight-medium);
+}
+
+.svc-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: var(--sp-spacing-1) 0;
+}
+
+.svc-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid var(--md-sys-color-outline);
+  display: inline-block;
+}
+
+.svc-dot--ok {
+  background: var(--sp-status-ok-container);
+  border-color: var(--sp-status-ok);
+}
+
+.svc-dot--fail {
+  background: var(--md-sys-color-error-container);
+  border-color: var(--md-sys-color-error);
+}
+
+.svc-incidents {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.svc-incidents li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-spacing-1);
+}

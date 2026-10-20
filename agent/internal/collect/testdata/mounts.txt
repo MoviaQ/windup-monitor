@@ -1,0 +1,8 @@
+proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0
+sysfs /sys sysfs rw,nosuid,nodev,noexec,relatime 0 0
+/dev/sda1 / ext4 rw,relatime 0 0
+/dev/sda1 / ext4 rw,relatime 0 0
+/dev/sda2 /data xfs rw,relatime 0 0
+tmpfs /dev/shm tmpfs rw,nosuid,nodev 0 0
+/dev/loop0 /snap/core ext4 ro,relatime 0 0
+overlay /var/lib/docker/overlay2/abc merged rw,relatime 0 0

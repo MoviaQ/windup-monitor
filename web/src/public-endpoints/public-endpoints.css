@@ -1,0 +1,82 @@
+/* StatusPilot — sekcja publicznych adresów URL (ten sam język wizualny co karty usług). */
+
+.pe-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.pe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pe-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Agregat + osobne odznaki na zwiniętej karcie (zawijają się na mobile). */
+.pe-summary-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-spacing-1);
+}
+
+.pe-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px dashed var(--md-sys-color-outline-variant);
+}
+
+.pe-row:first-child {
+  border-top: 0;
+}
+
+.pe-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pe-link {
+  color: var(--md-sys-color-primary);
+  overflow-wrap: anywhere;
+}
+
+.pe-row-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.pe-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 640px) {
+  .pe-row-side {
+    align-items: flex-start;
+  }
+}

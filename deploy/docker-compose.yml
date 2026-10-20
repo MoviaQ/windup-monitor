@@ -1,0 +1,67 @@
+# Windup Monitor — supported deployment (Core + PostgreSQL).
+#
+#   cp deploy/.env.example deploy/.env
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#
+# Core never mounts docker.sock. The agent runs on the monitored host
+# (binary + systemd), not in this compose project.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-statuspilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in deploy/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-statuspilot}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-statuspilot} -d ${POSTGRES_DB:-statuspilot}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  core:
+    build:
+      context: ..
+      dockerfile: core/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-statuspilot}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-statuspilot}?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in deploy/.env}
+      HOST: 0.0.0.0
+      PORT: 8080
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      BOOTSTRAP_TOKEN_FILE: /app/core/data/bootstrap-token
+      WEB_DIST_DIR: /app/web
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      # Bootstrap token file (0600) survives container restarts.
+      - core-data:/app/core/data
+    ports:
+      # Bound to loopback by default. Put the optional Caddy TLS proxy in front
+      # (deploy/docker-compose.tls.yml) or change to 0.0.0.0 only on a trusted LAN.
+      - "127.0.0.1:${CORE_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/api/v1/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  core-data:

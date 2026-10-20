@@ -1,0 +1,9 @@
+{
+  "core_url": "https://core:8080",
+  "state_dir": "/var/lib/windup-monitor",
+  "hostname": "",
+  "interval_s": 15,
+  "allow_insecure_http": false,
+  "ca_file": "",
+  "shutdown_timeout_s": 10
+}

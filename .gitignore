@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+web/dist/
+core/dist/
+
+# Generated Prisma client (regenerate with `npm run prisma:generate`)
+core/src/generated/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+bootstrap-token
+core/data/
+
+# Local scratch / tooling
+.tmp/
+.cache/
+coverage/
+*.log
+npm-debug.log*
+
+# Go build output
+agent/bin/
+*.test
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

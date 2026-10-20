@@ -1,0 +1,61 @@
+/* Windup Monitor — style panelu konfiguracji AI. Tylko tokeny z tokens.css. */
+
+/* Jedna widoczna karta połączenia na raz — pełna szerokość kolumny. */
+.ai-connection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-spacing-2);
+  align-items: stretch;
+}
+
+.ai-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-spacing-1);
+}
+
+.ai-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-spacing-1);
+  min-height: var(--sp-touch-target);
+  padding: 0 var(--sp-spacing-1);
+  border-radius: var(--md-sys-shape-corner-small);
+  cursor: pointer;
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.ai-radio input,
+.ai-check input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--md-sys-color-primary);
+}
+
+.ai-radio--block {
+  align-items: flex-start;
+}
+
+.ai-radio--block input {
+  margin-top: 2px;
+}
+
+.ai-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-spacing-1);
+  min-height: var(--sp-touch-target);
+  cursor: pointer;
+  font-weight: var(--md-sys-typescale-weight-medium);
+}
+
+.ai-usage-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
